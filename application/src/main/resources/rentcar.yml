@@ -1,0 +1,384 @@
+openapi: 3.0.3
+info:
+  version: 0.0.1-SNAPSHOT
+  title: RentCar Java Challenge - OpenAPI 3.0
+  description: Api contract to manage BKool bikes stock
+  termsOfService: none
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+servers:
+  - url: 'http://localhost:8080/'
+tags:
+  - name: client
+    description: Everything about your Clients
+  - name: rentcar
+    description: Access to Rent Car operations
+  - name: inventory
+    description: Operations about Cars Inventory
+
+paths:
+  /client:
+    post:
+      tags:
+        - client
+      summary: create a client
+      operationId: createClient
+      requestBody:
+        description: Created client object
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiClientRecord'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-codegen-request-body-name: body
+  /client/{client_dni}:
+    get:
+      tags:
+        - client
+      summary: Finds Client file
+      description: Finds Client details from database
+      operationId: findClientByDni
+      parameters:
+        - name: client_dni
+          in: path
+          description: DNI of client that needs to be retrieved
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiClient'
+        '400':
+          description: Invalid DNI value
+        '404':
+          description: Client not found
+
+  /rentcar:
+    post:
+      tags:
+        - rentcar
+      summary: create a new rent car order
+      operationId: createRentCarOrder
+      requestBody:
+        description: Created rent car object
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ApiRentCarOrder'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-codegen-request-body-name: body
+  /rentcar/{rentcar_id}:
+    get:
+      tags:
+        - rentcar
+      summary: Finds Rent Car Order
+      description: Finds Rent Car Order Details from database
+      operationId: findRentCarOrder
+      parameters:
+        - name: rentcar_id
+          in: path
+          description: DNI of client that needs to be retrieved
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiRentCarOrderDetail'
+        '400':
+          description: Rent Car Id invalid value
+        '404':
+          description: Rent Car Id not found
+      x-codegen-request-body-name: body
+  /rentcar/return:
+    post:
+      tags:
+        - rentcar
+      summary: complete a rent car order
+      operationId: completeRentCarOrder
+      parameters:
+        - name: car_plate
+          in: query
+          description: Identification car
+          required: true
+          schema:
+            type: string
+        - name: return_date
+          in: query
+          description: Identification car
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+      x-codegen-request-body-name: body
+  /car/inventory/list:
+    get:
+      tags:
+        - inventory
+      summary: Returns car inventories by carPlate or category
+      description: Returns car inventories by carPLate or category
+      operationId: getCarInventory
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiCarInfo'
+        '401':
+          description: Invalid carPlate value
+        '402':
+          description: Invalid categoryId value
+        '404':
+          description: Car/Category not found
+      x-codegen-request-body-name: body
+  /car/inventory/{carPlate}:
+    get:
+      tags:
+        - inventory
+      summary: Returns car detail by Id
+      description: Returns a map of status codes to quantities
+      operationId: findCarInventoryByCarPlate
+      parameters:
+        - name: carPlate
+          in: path
+          description: Id of car that needs to be retrieved
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiCarInfo'
+        '400':
+          description: Invalid carPlate value
+        '404':
+          description: Car not found
+      x-codegen-request-body-name: body
+components:
+  schemas:
+    ApiClientRecord:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        dni:
+          type: string
+          maxLength: 10
+        name:
+          type: string
+        surname:
+          type: string
+        gender:
+          type: string
+          enum : [VARON, HEMBRA]
+        created_on:
+          type: string
+    ApiClient:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        dni:
+          type: string
+          maxLength : 10
+        name:
+          type: string
+        surname:
+          type: string
+        gender:
+          type: string
+          enum : [VARON, HEMBRA]
+        loyalty:
+          type: integer
+          format: int64
+        created_on:
+          type: string
+        order_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiRentCarOrderClientInfo'
+    ApiRentCarOrder:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        client_dni:
+          type: string
+          maxLength : 10
+        car_plate:
+          type: string
+          maxLength : 8
+        start_date:
+          type: date
+        end_date:
+          type: date
+    ApiRentCarOrderResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        client_dni:
+          type: string
+          maxLength: 10
+        car_plate:
+          type: string
+          maxLength: 8
+        start_date:
+          type: string
+          pattern : "yyyy-MM-dd"
+        end_date:
+          type: string
+          pattern : "yyyy-MM-dd"
+        return_date:
+          type: string
+          pattern : "yyyy-MM-dd"
+        price:
+          type: number
+        status:
+          type: string
+        created_on:
+          type: string
+    ApiRentCarOrderClientInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        car_plate:
+          type: string
+          maxLength : 8
+        start_date:
+          type: string
+          pattern: "yyyy-MM-dd"
+        end_date:
+          type: string
+          pattern: "yyyy-MM-dd"
+        return_date:
+          type: string
+          pattern: "yyyy-MM-dd"
+        price:
+          type: number
+        status:
+          type: string
+        created_on:
+          type: string
+    ApiRentCarOrderCarInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        client_dni:
+          type: string
+          maxLength : 10
+        client_fullname:
+          type: string
+        start_date:
+          type: date
+        end_date:
+          type: date
+        created_on:
+          type: string
+    ApiRentCarOrderDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        client_dni:
+          type: string
+          maxLength : 10
+        client_fullname:
+          type: string
+        car_plate:
+          type: string
+          maxLength : 8
+        car_detail:
+          type: string
+        start_date:
+          type: string
+        end_date:
+          type: string
+        return_date:
+          type: string
+    ApiCarInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        plate:
+          type: string
+          maxLength : 8
+        make:
+          type: string
+        model:
+          type: string
+        type:
+          type: string
+          enum : [PREMIUN, SUV, SMALL]
+        year:
+          type : integer
+          format : int64
+        created_on:
+          type: string
+        order_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiRentCarOrderCarInfo'
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int64
+        type:
+          type: string
+        message:
+          type: string
+        orders:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiRentCarOrderResponse'
